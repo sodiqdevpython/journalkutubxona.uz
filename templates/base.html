@@ -224,7 +224,7 @@
             {% for article in footer_popular %}
             <div class="mb-3">
                 <div class="mb-2">
-                    <a class="badge badge-primary text-uppercase font-weight-semi-bold p-1 mr-2" href="{% url 'moderation_list' %}?category={{ article.category.id }}">
+                    <a class="badge badge-primary text-uppercase font-weight-semi-bold p-1 mr-2" href="{% url 'article_list' %}?category={{ article.category.id }}">
                         {{ article.category.name }}
                     </a>
                     <span class="text-body small"><i class="far fa-calendar-alt mr-1"></i> {{ article.created_at|date:"d M Y" }}</span>
@@ -244,7 +244,7 @@
             </h5>
             <div class="m-n1">
                 {% for cat in footer_categories %}
-                    <a href="{% url 'moderation_list' %}?category={{ cat.id }}" class="btn btn-sm btn-secondary m-1">
+                    <a href="{% url 'article_list' %}?category={{ cat.id }}" class="btn btn-sm btn-secondary m-1">
                         {{ cat.name }}
                     </a>
                 {% empty %}
