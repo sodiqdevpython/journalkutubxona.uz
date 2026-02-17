@@ -11,8 +11,6 @@ services:
       - db_data:/app/db_data
     expose:
       - 8000
-    env_file:
-      - .env
 
   nginx:
     image: nginx:1.25-alpine
