@@ -131,3 +131,10 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
 
 LOGOUT_REDIRECT_URL = 'index'
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://journalkutubxona.uz",
+    "https://www.journalkutubxona.uz",
+    "https://*.journalkutubxona.uz",
+]
