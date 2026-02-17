@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-warning text-dark py-3">
+                    <h4 class="mb-0 font-weight-bold"><i class="fas fa-edit mr-2"></i> Maqolani Tahrirlash</h4>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="alert alert-info border-left-info shadow-sm">
+                        <i class="fas fa-info-circle mr-2"></i> 
+                        Tahrirlaganingizdan so'ng maqola statusi avtomatik ravishda <strong>"Kutilmoqda"</strong> ga o'zgaradi va qayta tekshiriladi.
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" id="articleForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="font-weight-bold">Sarlavha <span class="text-danger">*</span></label>
+                                {{ form.title }}
+                                {{ form.title.errors }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-bold">Kategoriya <span class="text-danger">*</span></label>
+                                {{ form.category }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-bold">Kalit so'zlar (Keywords) <span class="text-danger">*</span></label>
+                                <div style="display: none;">{{ form.keywords }}</div>
+                                
+                                <div class="tag-container" id="tag-wrapper" style="border: 1px solid #ced4da; padding: 5px; border-radius: 4px; display: flex; flex-wrap: wrap; gap: 5px; min-height: 38px;">
+                                    <input type="text" id="tag-input-field" placeholder="Yozing va Enter bosing..." style="border: none; outline: none; flex-grow: 1;">
+                                </div>
+                                <small class="text-muted">Enter yoki Vergul bosing</small>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label class="font-weight-bold">Annotatsiya (Abstract) <span class="text-danger">*</span></label>
+                                {{ form.abstract }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-bold">Muqova Rasmi</label>
+                                {{ form.cover_image }}
+                                {% if form.instance.cover_image %}
+                                    <small class="d-block mt-1">Hozirgi: <a href="{{ form.instance.cover_image.url }}">{{ form.instance.cover_image.name }}</a></small>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-bold">Maqola Fayli (PDF/Word)</label>
+                                {{ form.original_file }}
+                                {% if form.instance.original_file %}
+                                    <small class="d-block mt-1">Hozirgi: <a href="{{ form.instance.original_file.url }}">{{ form.instance.original_file.name }}</a></small>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <label class="font-weight-bold">Foydalanilgan Adabiyotlar</label>
+                                {{ form.references }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="font-weight-bold mb-3">Mualliflar</h5>
+                        {{ formset.management_form }}
+                        
+                        <div id="author-forms-container">
+                            {% for author_form in formset %}
+                            <div class="author-row card bg-light mb-3 p-3 border-0">
+                                <div class="row align-items-center">
+                                    {{ author_form.id }}
+                                    {{ author_form.order }} <div class="col-md-12 text-right">
+                                        {% if formset.can_delete %}
+                                            <span class="text-danger small" style="cursor: pointer;" onclick="removeAuthor(this)">
+                                                <i class="fas fa-trash"></i> O'chirish
+                                            </span>
+                                            <div style="display:none">{{ author_form.DELETE }}</div> 
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-4 user-select-group" {% if author_form.instance.is_manual %}style="display:none;"{% endif %}>
+                                        <label class="small font-weight-bold">Tizimdagi Muallif</label>
+                                        
+                                        <div class="autocomplete-wrapper position-relative">
+                                            <input type="text" class="form-control user-search-input" 
+                                                   placeholder="Qidirish (Ism, Login)..." autocomplete="off"
+                                                   value="{% if author_form.instance.user %}{{ author_form.instance.user.get_full_name|default:author_form.instance.user.username }}{% endif %}">
+                                            
+                                            <input type="hidden" name="{{ author_form.prefix }}-user" 
+                                                   class="user-id-input" 
+                                                   value="{{ author_form.instance.user.id|default:'' }}">
+
+                                            <div class="suggestions-box position-absolute bg-white border w-100" style="display:none; z-index:1000; top:100%;"></div>
+                                        </div>
+
+                                        <div class="mt-1">
+                                            <label class="small text-primary manual-toggle-label" style="cursor:pointer">
+                                                {{ author_form.is_manual }} Ro'yxatda yo'qmi?
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 manual-field" {% if not author_form.instance.is_manual %}style="display:none;"{% endif %}>
+                                        <label class="small font-weight-bold">F.I.SH (Qo'lda)</label>
+                                        {{ author_form.full_name }}
+                                    </div>
+                                    <div class="col-md-4 manual-field" {% if not author_form.instance.is_manual %}style="display:none;"{% endif %}>
+                                        <label class="small font-weight-bold">Ish joyi</label>
+                                        {{ author_form.affiliation }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <button type="button" class="btn btn-outline-primary btn-sm mb-4" id="add-author-btn">
+                            <i class="fas fa-plus"></i> Muallif qo'shish
+                        </button>
+
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'article_detail' form.instance.slug %}" class="btn btn-secondary">Bekor qilish</a>
+                            <button type="submit" id="submitBtn" class="btn btn-success px-5 font-weight-bold">
+                                <i class="fas fa-save mr-2"></i> Saqlash va Yuborish
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/template" id="empty-form-template">
+    <div class="author-row card bg-light mb-3 p-3 border-0">
+        <div class="row align-items-center">
+            <input type="hidden" name="authors-__prefix__-order" id="id_authors-__prefix__-order">
+            <input type="hidden" name="authors-__prefix__-id" id="id_authors-__prefix__-id">
+            
+            <div class="col-md-12 text-right">
+                <span class="text-danger small" style="cursor: pointer;" onclick="removeAuthor(this)">
+                    <i class="fas fa-trash"></i> O'chirish
+                </span>
+                <input type="checkbox" name="authors-__prefix__-DELETE" id="id_authors-__prefix__-DELETE" style="display:none">
+            </div>
+
+            <div class="col-md-4 user-select-group">
+                <label class="small font-weight-bold">Tizimdagi Muallif</label>
+                <div class="autocomplete-wrapper position-relative">
+                    <input type="text" class="form-control user-search-input" placeholder="Qidirish (Ism, Login)..." autocomplete="off">
+                    <input type="hidden" name="authors-__prefix__-user" class="user-id-input" id="id_authors-__prefix__-user">
+                    <div class="suggestions-box position-absolute bg-white border w-100" style="display:none; z-index:1000; top:100%;"></div>
+                </div>
+                <div class="mt-1">
+                    <label class="small text-primary manual-toggle-label" style="cursor:pointer">
+                        <input type="checkbox" name="authors-__prefix__-is_manual" class="manual-toggle" id="id_authors-__prefix__-is_manual"> 
+                        Ro'yxatda yo'qmi?
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-md-4 manual-field" style="display: none;">
+                <label class="small font-weight-bold">F.I.SH (Qo'lda)</label>
+                <input type="text" name="authors-__prefix__-full_name" class="form-control manual-input" placeholder="F.I.SH">
+            </div>
+            <div class="col-md-4 manual-field" style="display: none;">
+                <label class="small font-weight-bold">Ish joyi</label>
+                <input type="text" name="authors-__prefix__-affiliation" class="form-control manual-input" placeholder="Ish joyi">
+            </div>
+        </div>
+    </div>
+</script>
+
+<style>
+    .tag { background-color: #007bff; color: white; padding: 3px 8px; border-radius: 15px; display: flex; align-items: center; font-size: 14px; margin-right: 5px; margin-bottom: 5px; }
+    .tag i { margin-left: 5px; cursor: pointer; }
+    .suggestion-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+    .suggestion-item:hover { background-color: #f8f9fa; color: #007bff; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    // 0. TARTIB RAQAMLARINI YANGILASH
+    function updateOrders() {
+        const rows = document.querySelectorAll('.author-row');
+        rows.forEach((row, index) => {
+            const orderInput = row.querySelector('input[name$="-order"]');
+            if (orderInput) {
+                orderInput.value = index + 1;
+            }
+        });
+    }
+
+    // 1. AUTOCOMPLETE
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    function setupAutocomplete(row) {
+        const searchInput = row.querySelector('.user-search-input');
+        const hiddenIdInput = row.querySelector('.user-id-input');
+        const suggestionsBox = row.querySelector('.suggestions-box');
+        
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', debounce(function() {
+            const query = this.value.trim();
+            if (query.length < 1) {
+                suggestionsBox.style.display = 'none';
+                return;
+            }
+            fetch(`/users/search/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionsBox.innerHTML = '';
+                    if (data.results.length > 0) {
+                        suggestionsBox.style.display = 'block';
+                        data.results.forEach(user => {
+                            const item = document.createElement('div');
+                            item.className = 'suggestion-item';
+                            item.textContent = user.text;
+                            item.onclick = function() {
+                                searchInput.value = user.text;
+                                hiddenIdInput.value = user.id;
+                                suggestionsBox.style.display = 'none';
+                            };
+                            suggestionsBox.appendChild(item);
+                        });
+                    } else {
+                        suggestionsBox.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error(err));
+        }, 300));
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+    }
+    document.querySelectorAll('.author-row').forEach(row => setupAutocomplete(row));
+
+    // 2. YANGI MUALLIF
+    const authorContainer = document.getElementById('author-forms-container');
+    const addAuthorBtn = document.getElementById('add-author-btn');
+    const totalForms = document.getElementById('id_authors-TOTAL_FORMS');
+    const emptyTemplateEl = document.getElementById('empty-form-template');
+
+    if (addAuthorBtn && emptyTemplateEl) {
+        const emptyFormTemplate = emptyTemplateEl.innerHTML;
+        addAuthorBtn.addEventListener('click', function() {
+            const formCount = parseInt(totalForms.value);
+            const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formCount);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newFormHtml;
+            const newFormRow = tempDiv.firstElementChild;
+            
+            authorContainer.appendChild(newFormRow);
+            totalForms.value = formCount + 1;
+            
+            attachToggleListener(newFormRow);
+            setupAutocomplete(newFormRow);
+            updateOrders();
+        });
+    }
+
+    // 3. TOGGLE
+    function attachToggleListener(row) {
+        const checkbox = row.querySelector('.manual-toggle');
+        const userSelectDiv = row.querySelector('.user-select-group');
+        const manualFields = row.querySelectorAll('.manual-field');
+        const hiddenIdInput = row.querySelector('.user-id-input');
+        const searchInput = row.querySelector('.user-search-input');
+
+        if(checkbox) {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    userSelectDiv.style.display = 'none';
+                    manualFields.forEach(f => f.style.display = 'block');
+                    if(hiddenIdInput) hiddenIdInput.value = '';
+                    if(searchInput) searchInput.value = '';
+                } else {
+                    userSelectDiv.style.display = 'block';
+                    manualFields.forEach(f => f.style.display = 'none');
+                    row.querySelectorAll('.manual-input').forEach(i => i.value = '');
+                }
+            });
+        }
+    }
+    document.querySelectorAll('.author-row').forEach(row => attachToggleListener(row));
+
+    // 4. O'CHIRISH
+    window.removeAuthor = function(btn) {
+        const row = btn.closest('.author-row');
+        const deleteInput = row.querySelector('input[name$="-DELETE"]');
+        if (deleteInput) {
+            deleteInput.checked = true;
+            row.style.display = 'none';
+        } else {
+            row.remove();
+        }
+        updateOrders();
+    };
+
+    // 5. KEYWORDS TAGS (MAVJUD TAGLARNI YUKLASH BILAN)
+    const tagWrapper = document.getElementById('tag-wrapper');
+    const tagInput = document.getElementById('tag-input-field');
+    const hiddenInput = document.getElementById('id_keywords') || document.querySelector('input[name="keywords"]');
+    let tags = [];
+
+    // --- MAVJUDLARNI YUKLASH ---
+    if (hiddenInput && hiddenInput.value) {
+        hiddenInput.value.split(',').forEach(tag => {
+            const cleanTag = tag.trim();
+            if(cleanTag) {
+                tags.push(cleanTag);
+            }
+        });
+        renderTags(); // Ularni darhol chizamiz
+    }
+
+    if (tagInput) {
+        tagInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                const val = tagInput.value.trim().replace(',', '');
+                if (val && !tags.includes(val)) {
+                    tags.push(val);
+                    updateHiddenInput();
+                    renderTags();
+                    tagInput.value = '';
+                }
+            }
+            if (e.key === 'Backspace' && tagInput.value === '' && tags.length > 0) {
+                tags.pop();
+                updateHiddenInput();
+                renderTags();
+            }
+        });
+    }
+
+    function renderTags() {
+        const existingTags = tagWrapper.querySelectorAll('.tag');
+        existingTags.forEach(t => t.remove());
+
+        tags.forEach(text => {
+            const tag = document.createElement('div');
+            tag.className = 'tag';
+            tag.textContent = text; // textContent xavfsizroq
+            
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-times';
+            icon.onclick = function() {
+                tags = tags.filter(t => t !== text);
+                updateHiddenInput();
+                renderTags();
+            };
+            tag.appendChild(icon);
+            tagWrapper.insertBefore(tag, tagInput);
+        });
+    }
+
+    function updateHiddenInput() {
+        if(hiddenInput) hiddenInput.value = tags.join(',');
+    }
+
+    // Sahifa yuklanganda tartibni to'g'rilash
+    updateOrders();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    /* Matnni qatorga sig'dirish (Truncate) */
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    /* Rasm effektlari (Zoom) */
+    .img-zoom-container {
+        overflow: hidden;
+        position: relative;
+    }
+    .img-zoom-container img {
+        transition: transform 0.5s ease;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .img-zoom-container:hover img {
+        transform: scale(1.1);
+    }
+    
+    /* Overlay (Qoramtir fon) */
+    .overlay-gradient {
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 20px;
+        z-index: 2;
+    }
+
+    /* Balandliklar */
+    .h-500 { height: 500px; }
+    .h-250 { height: 250px; }
+    .h-300 { height: 300px; }
+    .h-110 { height: 110px; }
+    
+    @media (max-width: 991px) {
+        .h-500 { height: 400px; }
+        .h-250 { height: 200px; }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-7 px-0">
+            <div class="owl-carousel main-carousel position-relative">
+                {% for article in slider_articles %}
+                <div class="position-relative overflow-hidden h-500 img-zoom-container">
+                    {% if article.cover_image %}
+                        <img class="img-fluid" src="{{ article.cover_image.url }}">
+                    {% else %}
+                        <img class="img-fluid" src="{% static 'img/default-cover.jpg' %}">
+                    {% endif %}
+                    <div class="overlay-gradient">
+                        <div class="mb-2">
+                            <a class="badge badge-primary text-uppercase font-weight-semi-bold p-2 mr-2" href="{% url 'moderation_list' %}?category={{ article.category.id }}">
+                                {{ article.category.name }}
+                            </a>
+                            <span class="text-white font-weight-bold">{{ article.created_at|date:"d M, Y" }}</span>
+                        </div>
+                        <a class="h2 m-0 text-white text-uppercase font-weight-bold line-clamp-2" href="{% url 'article_detail' article.slug %}">
+                            {{ article.title }}
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="position-relative overflow-hidden h-500 d-flex align-items-center justify-content-center bg-dark">
+                    <h3 class="text-white">Hozircha maqolalar yo'q</h3>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-lg-5 px-0">
+            <div class="row mx-0">
+                {% for article in top_grid_articles %}
+                <div class="col-md-6 px-0">
+                    <div class="position-relative overflow-hidden h-250 img-zoom-container" style="border: 1px solid rgba(255,255,255,0.1);">
+                        {% if article.cover_image %}
+                            <img class="img-fluid" src="{{ article.cover_image.url }}">
+                        {% else %}
+                            <img class="img-fluid" src="{% static 'img/default-small.jpg' %}">
+                        {% endif %}
+                        <div class="overlay-gradient" style="padding: 15px;">
+                            <div class="mb-1">
+                                <a class="badge badge-primary text-uppercase font-weight-semi-bold p-1 mr-2" href="{% url 'moderation_list' %}?category={{ article.category.id }}">
+                                    {{ article.category.name }}
+                                </a>
+                                <small class="text-white">{{ article.created_at|date:"d M" }}</small>
+                            </div>
+                            <a class="h6 m-0 text-white text-uppercase font-weight-semi-bold line-clamp-2" href="{% url 'article_detail' article.slug %}">
+                                {{ article.title }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid bg-dark py-3 mb-3">
+    <div class="container">
+        <div class="row align-items-center bg-dark">
+            <div class="col-12">
+                <div class="d-flex justify-content-between">
+                    <div class="bg-primary text-dark text-center font-weight-medium py-2" style="width: 170px;">
+                        So'nggi yangiliklar
+                    </div>
+                    <div class="owl-carousel tranding-carousel position-relative d-inline-flex align-items-center ml-3" style="width: calc(100% - 170px); padding-right: 90px;">
+                        {% for article in breaking_articles %}
+                        <div class="text-truncate">
+                            <a class="text-white text-uppercase font-weight-semi-bold" href="{% url 'article_detail' article.slug %}">
+                                {{ article.title }}
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid pt-5 mb-3">
+    <div class="container">
+        <div class="section-title">
+            <h4 class="m-0 text-uppercase font-weight-bold">Tanlangan Maqolalar</h4>
+        </div>
+        <div class="owl-carousel news-carousel carousel-item-4 position-relative">
+            {% for article in featured_articles %}
+            <div class="position-relative overflow-hidden h-300 img-zoom-container mx-2">
+                {% if article.cover_image %}
+                    <img class="img-fluid" src="{{ article.cover_image.url }}">
+                {% else %}
+                    <img class="img-fluid" src="{% static 'img/default-featured.jpg' %}">
+                {% endif %}
+                <div class="overlay-gradient">
+                    <div class="mb-2">
+                        <a class="badge badge-primary text-uppercase font-weight-semi-bold p-2 mr-2" href="#">
+                            {{ article.category.name }}
+                        </a>
+                        <small class="text-white">{{ article.created_at|date:"d M" }}</small>
+                    </div>
+                    <a class="h6 m-0 text-white text-uppercase font-weight-semi-bold line-clamp-2" href="{% url 'article_detail' article.slug %}">
+                        {{ article.title }}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="container">
+        <div class="row">
+            
+            <div class="col-lg-8">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="section-title">
+                            <h4 class="m-0 text-uppercase font-weight-bold">Barcha Maqolalar</h4>
+                            <a class="text-secondary font-weight-medium text-decoration-none" href="{% url 'moderation_list' %}?status=published">Barchasini ko'rish</a>
+                        </div>
+                    </div>
+
+                    {% for article in latest_articles|slice:":2" %}
+                    <div class="col-lg-6">
+                        <div class="position-relative mb-3">
+                            <div class="h-300 overflow-hidden img-zoom-container">
+                                {% if article.cover_image %}
+                                    <img class="img-fluid" src="{{ article.cover_image.url }}">
+                                {% else %}
+                                    <img class="img-fluid" src="{% static 'img/default-news.jpg' %}">
+                                {% endif %}
+                            </div>
+                            <div class="bg-white border border-top-0 p-4">
+                                <div class="mb-2">
+                                    <a class="badge badge-primary text-uppercase font-weight-semi-bold p-2 mr-2" href="#">
+                                        {{ article.category.name }}
+                                    </a>
+                                    <small class="text-muted">{{ article.created_at|date:"d M, Y" }}</small>
+                                </div>
+                                <a class="h4 d-block mb-3 text-secondary text-uppercase font-weight-bold line-clamp-2" href="{% url 'article_detail' article.slug %}">
+                                    {{ article.title }}
+                                </a>
+                                <p class="m-0 line-clamp-2 text-muted">{{ article.abstract }}</p>
+                            </div>
+                            <div class="d-flex justify-content-between bg-white border border-top-0 p-4">
+                                <div class="d-flex align-items-center">
+                                    {% if article.submitter.avatar %}
+                                        <img class="rounded-circle mr-2" src="{{ article.submitter.avatar.url }}" width="25" height="25" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle mr-2 bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 25px; height: 25px; font-size: 12px;">
+                                            {{ article.submitter.username|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <small>{{ article.submitter.get_full_name|default:article.submitter.username }}</small>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <small class="ml-3"><i class="far fa-eye mr-2"></i>{{ article.views }}</small>
+                                    <small class="ml-3"><i class="far fa-comment mr-2"></i>{{ article.comments.count }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    {% for article in latest_articles|slice:"2:4" %}
+                    <div class="col-lg-6">
+                        <div class="position-relative mb-3">
+                            <div class="h-250 overflow-hidden img-zoom-container">
+                                {% if article.cover_image %}
+                                    <img class="img-fluid" src="{{ article.cover_image.url }}">
+                                {% else %}
+                                    <img class="img-fluid" src="{% static 'img/default-news.jpg' %}">
+                                {% endif %}
+                            </div>
+                            <div class="bg-white border border-top-0 p-4">
+                                <div class="mb-2">
+                                    <a class="badge badge-primary text-uppercase font-weight-semi-bold p-2 mr-2" href="#">
+                                        {{ article.category.name }}
+                                    </a>
+                                    <small class="text-muted">{{ article.created_at|date:"d M" }}</small>
+                                </div>
+                                <a class="h4 d-block mb-0 text-secondary text-uppercase font-weight-bold line-clamp-2" href="{% url 'article_detail' article.slug %}">
+                                    {{ article.title }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="col-lg-6">
+                        {% for article in latest_articles|slice:"4:8" %}
+                        <div class="d-flex align-items-center bg-white mb-3" style="height: 110px;">
+                            <div class="h-110" style="min-width: 110px; width: 110px;">
+                                {% if article.cover_image %}
+                                    <img class="img-fluid w-100 h-100" src="{{ article.cover_image.url }}" style="object-fit: cover;">
+                                {% else %}
+                                    <img class="img-fluid w-100 h-100" src="{% static 'img/default-small.jpg' %}" style="object-fit: cover;">
+                                {% endif %}
+                            </div>
+                            <div class="w-100 h-100 px-3 d-flex flex-column justify-content-center border border-left-0">
+                                <div class="mb-1">
+                                    <a class="badge badge-primary text-uppercase font-weight-semi-bold p-1 mr-2" href="#">
+                                        {{ article.category.name }}
+                                    </a>
+                                    <small class="text-muted">{{ article.created_at|date:"d M" }}</small>
+                                </div>
+                                <a class="h6 m-0 text-secondary text-uppercase font-weight-bold line-clamp-2" href="{% url 'article_detail' article.slug %}">
+                                    {{ article.title }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-lg-6">
+                        {% for article in latest_articles|slice:"8:12" %}
+                        <div class="d-flex align-items-center bg-white mb-3" style="height: 110px;">
+                            <div class="h-110" style="min-width: 110px; width: 110px;">
+                                {% if article.cover_image %}
+                                    <img class="img-fluid w-100 h-100" src="{{ article.cover_image.url }}" style="object-fit: cover;">
+                                {% else %}
+                                    <img class="img-fluid w-100 h-100" src="{% static 'img/default-small.jpg' %}" style="object-fit: cover;">
+                                {% endif %}
+                            </div>
+                            <div class="w-100 h-100 px-3 d-flex flex-column justify-content-center border border-left-0">
+                                <div class="mb-1">
+                                    <a class="badge badge-primary text-uppercase font-weight-semi-bold p-1 mr-2" href="#">
+                                        {{ article.category.name }}
+                                    </a>
+                                    <small class="text-muted">{{ article.created_at|date:"d M" }}</small>
+                                </div>
+                                <a class="h6 m-0 text-secondary text-uppercase font-weight-bold line-clamp-2" href="{% url 'article_detail' article.slug %}">
+                                    {{ article.title }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% for article in special_articles %}
+                    <div class="col-lg-12">
+                        <div class="row news-lg mx-0 mb-3">
+                            <div class="col-md-6 h-100 px-0">
+                                <div class="h-100 img-zoom-container">
+                                    {% if article.cover_image %}
+                                        <img class="img-fluid w-100 h-100" src="{{ article.cover_image.url }}">
+                                    {% else %}
+                                        <img class="img-fluid w-100 h-100" src="{% static 'img/default-lg.jpg' %}">
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 d-flex flex-column border bg-white h-100 px-0">
+                                <div class="mt-auto p-4">
+                                    <div class="mb-2">
+                                        <a class="badge badge-primary text-uppercase font-weight-semi-bold p-2 mr-2" href="#">
+                                            {{ article.category.name }}
+                                        </a>
+                                        <small>{{ article.created_at|date:"d M, Y" }}</small>
+                                    </div>
+                                    <a class="h4 d-block mb-3 text-secondary text-uppercase font-weight-bold line-clamp-2" href="{% url 'article_detail' article.slug %}">
+                                        {{ article.title }}
+                                    </a>
+                                    <p class="m-0 line-clamp-2 text-muted">{{ article.abstract }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                
+                <div class="mb-3">
+                    <div class="section-title mb-0">
+                        <h4 class="m-0 text-uppercase font-weight-bold">Bizni Kuzating</h4>
+                    </div>
+                    <div class="bg-white border border-top-0 p-3">
+                        <a href="" class="d-block w-100 text-white text-decoration-none mb-3" style="background: #39569E;">
+                            <i class="fab fa-facebook-f text-center py-4 mr-3" style="width: 65px; background: rgba(0, 0, 0, .2);"></i>
+                            <span class="font-weight-bold">Facebook</span>
+                        </a>
+                        <a href="" class="d-block w-100 text-white text-decoration-none mb-3" style="background: #52AAF4;">
+                            <i class="fab fa-twitter text-center py-4 mr-3" style="width: 65px; background: rgba(0, 0, 0, .2);"></i>
+                            <span class="font-weight-bold">Twitter</span>
+                        </a>
+                        <a href="" class="d-block w-100 text-white text-decoration-none mb-3" style="background: #C8359D;">
+                            <i class="fab fa-instagram text-center py-4 mr-3" style="width: 65px; background: rgba(0, 0, 0, .2);"></i>
+                            <span class="font-weight-bold">Instagram</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="section-title mb-0">
+                        <h4 class="m-0 text-uppercase font-weight-bold">Ko'p o'qilganlar</h4>
+                    </div>
+                    <div class="bg-white border border-top-0 p-3">
+                        {% for article in popular_articles %}
+                        <div class="d-flex align-items-center bg-white mb-3" style="height: 110px;">
+                            <div class="h-110" style="min-width: 110px; width: 110px;">
+                                {% if article.cover_image %}
+                                    <img class="img-fluid w-100 h-100" src="{{ article.cover_image.url }}" style="object-fit: cover;">
+                                {% else %}
+                                    <img class="img-fluid w-100 h-100" src="{% static 'img/default-small.jpg' %}" style="object-fit: cover;">
+                                {% endif %}
+                            </div>
+                            <div class="w-100 h-100 px-3 d-flex flex-column justify-content-center border border-left-0">
+                                <div class="mb-1">
+                                    <a class="badge badge-primary text-uppercase font-weight-semi-bold p-1 mr-2" href="#">
+                                        {{ article.category.name }}
+                                    </a>
+                                    <small class="text-muted">{{ article.created_at|date:"d M" }}</small>
+                                </div>
+                                <a class="h6 m-0 text-secondary text-uppercase font-weight-bold line-clamp-2" href="{% url 'article_detail' article.slug %}">
+                                    {{ article.title }}
+                                </a>
+                                <small class="text-muted mt-1"><i class="far fa-eye mr-1"></i> {{ article.views }}</small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">Hozircha ma'lumot yo'q</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

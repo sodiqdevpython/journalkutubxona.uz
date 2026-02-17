@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="container">
+        <div class="row">
+            
+            <div class="col-lg-8">
+                <div class="bg-white border p-4 mb-3 shadow-sm">
+                    
+                    <div class="mb-3 d-flex align-items-center flex-wrap">
+                        <a class="badge badge-primary text-uppercase font-weight-semi-bold p-2 mr-3" href="#">
+                            {{ article.category.name }}
+                        </a>
+                        <span class="text-secondary mr-3"><i class="fas fa-calendar-alt mr-1"></i> {{ article.created_at|date:"d M, Y" }}</span>
+                        <span class="text-secondary mr-3"><i class="far fa-eye mr-1"></i> {{ article.views }}</span>
+                        <span class="text-secondary"><i class="far fa-comment mr-1"></i> {{ comments.count }}</span>
+                    </div>
+
+                    <h1 class="mb-4 text-dark font-weight-bold" style="line-height: 1.3; overflow-wrap: break-word;">{{ article.title }}</h1>
+
+                    <div class="p-4 mb-4" style="background-color: #f8f9fa; border-left: 4px solid #007bff;">
+                        <h6 class="font-weight-bold text-primary mb-2 text-uppercase small">Annotatsiya</h6>
+                        <p class="text-dark mb-0 text-justify" style="line-height: 1.6; overflow-wrap: break-word; word-break: break-word;">
+                            {{ article.abstract }}
+                        </p>
+                    </div>
+
+                    <div class="mb-5">
+                        <h6 class="font-weight-bold text-uppercase border-bottom pb-2 mb-3 small">Mualliflar</h6>
+                        <div class="row">
+                            {% for author in article.authors.all %}
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center p-3 border rounded bg-light h-100">
+                                    <div class="bg-white text-primary border rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 45px; height: 45px; flex-shrink: 0; font-size: 1.2rem;">
+                                        {% if author.user and author.user.avatar %}
+                                            <img src="{{ author.user.avatar.url }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                                        {% else %}
+                                            <i class="fas fa-user-graduate"></i>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div style="overflow: hidden;"> <h6 class="mb-0 font-weight-bold text-dark text-truncate">
+                                            {% if author.user %}
+                                                {{ author.user.get_full_name|default:author.user.username }}
+                                            {% else %}
+                                                {{ author.full_name }}
+                                            {% endif %}
+                                        </h6>
+                                        <small class="text-muted d-block text-truncate">
+                                            {% if author.user %}
+                                                {{ author.user.institution|default:"Mustaqil tadqiqotchi" }}
+                                            {% else %}
+                                                {{ author.affiliation|default:"Mustaqil tadqiqotchi" }}
+                                            {% endif %}
+                                        </small>
+
+                                        {% if author.user %}
+                                            <div class="mt-1 small">
+                                                {% if author.user.is_email_public or request.user.is_staff %}
+                                                    {% if author.user.email %}
+                                                        <div class="text-truncate text-primary"><i class="fas fa-envelope mr-1"></i> {{ author.user.email }}</div>
+                                                    {% endif %}
+                                                {% endif %}
+                                                
+                                                {% if author.user.is_phone_public or request.user.is_staff %}
+                                                    {% if author.user.phone_number %}
+                                                        <div class="text-truncate text-success"><i class="fas fa-phone mr-1"></i> {{ author.user.phone_number }}</div>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-5">
+                        <h6 class="font-weight-bold text-uppercase border-bottom pb-2 mb-3 small">Maqola fayli</h6>
+                        
+                        {% if article.file_extension == ".pdf" %}
+                            <div class="border shadow-sm rounded overflow-hidden" style="height: 750px;">
+                                <embed src="{{ article.original_file.url }}" type="application/pdf" width="100%" height="100%">
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ article.original_file.url }}" class="btn btn-outline-primary px-5 font-weight-bold" download>
+                                   <i class="fas fa-file-download mr-2"></i> PDFni Yuklab Olish
+                               </a>
+                               <p class="text-muted small mt-1">Hajmi: {{ article.original_file.size|filesizeformat }}</p>
+                           </div>
+
+                        {% elif article.file_extension == ".doc" or article.file_extension == ".docx" %}
+                            
+                            <div class="border shadow-sm rounded overflow-hidden position-relative" style="height: 750px;">
+                                <iframe 
+                                    src="https://view.officeapps.live.com/op/embed.aspx?src={{ request.scheme }}://{{ request.get_host }}{{ article.original_file.url }}" 
+                                    width="100%" 
+                                    height="100%" 
+                                    frameborder="0"
+                                    style="border: none;">
+                                    Bu brauzer hujjatlarni ko'rsata olmaydi.
+                                </iframe>
+                                
+                                <div class="position-absolute bg-white p-2 text-danger small" style="top: 0; right: 0; opacity: 0.8;">
+                                    * Agar localhostda bo'lsangiz, bu oyna ishlamasligi mumkin.
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-3">
+                                <p class="text-muted small mb-2">
+                                    Agar hujjat yuqorida ko'rinmasa yoki xato bersa (ayniqsa localhostda), uni yuklab olib ko'rishingiz mumkin.
+                                </p>
+                                <a href="{{ article.original_file.url }}" class="btn btn-primary font-weight-bold px-4 shadow-sm" download>
+                                    <i class="fas fa-file-word mr-2"></i> Hujjatni Yuklab Olish
+                                </a>
+                                <p class="text-muted small mt-1">Hajmi: {{ article.original_file.size|filesizeformat }}</p>
+                            </div>
+                        {% else %}
+                             <div class="alert alert-warning text-center p-4">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>
+                                Fayl formatini oldindan ko'rish imkoni yo'q. Iltimos, yuklab oling.
+                                <br>
+                                <a href="{{ article.original_file.url }}" class="btn btn-warning mt-2" download>Yuklab olish</a>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if article.keywords %}
+                    <div class="mb-4">
+                        <h6 class="font-weight-bold text-uppercase small mb-2">Kalit so'zlar:</h6>
+                        <div class="d-flex flex-wrap">
+                            {% for tag in article.keywords.split %}
+                                {% if keywords_list %}
+                                    <div class="mb-4">
+                                        <div class="d-flex flex-wrap">
+                                            {% for tag in keywords_list %}
+                                                <a href="{% url 'moderation_list' %}?q={{ tag }}" class="badge badge-light border text-primary m-1 p-2 px-3 text-decoration-none hover-shadow">
+                                                    #{{ tag }}
+                                                </a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if article.references %}
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold text-uppercase border-bottom pb-2 mb-3 small">Foydalanilgan Adabiyotlar</h6>
+                        <div class="bg-light p-3 rounded border">
+                            <p class="small text-muted mb-0" style="white-space: pre-line; line-height: 1.6; overflow-wrap: break-word; word-break: break-word;">
+                                {{ article.references }}
+                            </p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+
+                <div class="bg-white border p-4 mb-3 shadow-sm">
+                    <h5 class="font-weight-bold text-uppercase mb-4 border-bottom pb-2 small">{{ comments.count }} Izohlar</h5>
+                    
+                    {% for comment in comments %}
+                    <div class="media mb-4">
+                        {% if comment.user.avatar %}
+                             <img src="{{ comment.user.avatar.url }}" class="rounded-circle mr-3" style="width: 45px; height: 45px; object-fit: cover;">
+                        {% else %}
+                             <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 45px; height: 45px;">
+                                <span class="font-weight-bold">{{ comment.user.username|slice:":1"|upper }}</span>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="media-body bg-light p-3 rounded">
+                            <h6 class="font-weight-bold mb-1 mt-0 d-flex justify-content-between">
+                                <span>{{ comment.user.get_full_name|default:comment.user.username }}</span>
+                                <small class="text-muted font-weight-normal">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                            </h6>
+                            <p class="mb-0 text-dark small" style="overflow-wrap: break-word;">{{ comment.text }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                        <p class="text-muted text-center py-3 bg-light rounded">Hozircha izohlar yo'q. Birinchi bo'lib fikr bildiring!</p>
+                    {% endfor %}
+
+                    <div class="mt-4">
+                        <h6 class="font-weight-bold mb-3">Fikr bildirish</h6>
+                        {% if user.is_authenticated %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                {{ comment_form.text }}
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm font-weight-bold px-4 py-2">Yuborish</button>
+                        </form>
+                        {% else %}
+                        <div class="alert alert-light border text-center">
+                            Izoh qoldirish uchun <a href="{% url 'login' %}" class="font-weight-bold text-primary">Tizimga kiring</a>.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                
+                <div class="mb-3">
+                    <div class="section-title mb-0">
+                        <h4 class="m-0 text-uppercase font-weight-bold">Shunga o'xshash</h4>
+                    </div>
+                    <div class="bg-white border border-top-0 p-3 shadow-sm">
+                        {% for rel in related_articles %}
+                        <div class="d-flex align-items-center bg-white mb-3" style="height: 100px;">
+                            {% if rel.cover_image %}
+                                <img src="{{ rel.cover_image.url }}" style="width: 100px; height: 100px; object-fit: cover; flex-shrink: 0;">
+                            {% else %}
+                                <div class="bg-light text-secondary d-flex align-items-center justify-content-center border" style="width: 100px; height: 100px; flex-shrink: 0;">
+                                    <i class="fas fa-file-alt fa-2x"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="w-100 h-100 px-3 d-flex flex-column justify-content-center border border-left-0" style="overflow: hidden;">
+                                <a class="h6 m-0 text-secondary text-uppercase font-weight-bold small text-truncate" href="{% url 'article_detail' rel.slug %}" title="{{ rel.title }}">
+                                    {{ rel.title }}
+                                </a>
+                                <small class="text-muted mt-2">
+                                    <i class="far fa-calendar-alt mr-1"></i> {{ rel.created_at|date:"d.m.Y" }}
+                                </small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3">
+                            <small class="text-muted">Boshqa o'xshash maqolalar topilmadi.</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="section-title mb-0">
+                        <h4 class="m-0 text-uppercase font-weight-bold">Yuboruvchi</h4>
+                    </div>
+                    <a href="{% url 'user_profile' article.submitter.username  %}">
+                        <div class="bg-white border border-top-0 p-4 text-center shadow-sm">
+                        {% if article.submitter.avatar %}
+                            <img src="{{ article.submitter.avatar.url }}" class="rounded-circle mb-3 shadow-sm" style="width: 90px; height: 90px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 90px; height: 90px;">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <h6 class="font-weight-bold mb-1 text-dark">{{ article.submitter.get_full_name|default:article.submitter.username }}</h6>
+                        <p class="text-muted small mb-3">
+                            {{ article.submitter.institution|default:"Mustaqil tadqiqotchi" }}
+                        </p>
+
+                        <div class="text-left bg-light p-3 rounded mb-3 small border">
+                            {% if article.submitter.is_email_public or request.user.is_staff %}
+                                {% if article.submitter.email %}
+                                    <div class="mb-2 text-truncate" title="{{ article.submitter.email }}">
+                                        <i class="fas fa-envelope text-primary mr-2" style="width: 15px;"></i> {{ article.submitter.email }}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% if article.submitter.is_phone_public or request.user.is_staff %}
+                                {% if article.submitter.phone_number %}
+                                    <div class="text-truncate">
+                                        <i class="fas fa-phone text-success mr-2" style="width: 15px;"></i> {{ article.submitter.phone_number }}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% if not article.submitter.is_email_public and not article.submitter.is_phone_public and not request.user.is_staff %}
+                                <div class="text-center text-muted">
+                                    <i>Kontakt ma'lumotlari yashirilgan</i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- <div class="d-flex justify-content-center">
+                             <button class="btn btn-sm btn-primary mx-1 shadow-sm" title="Bog'lanish"><i class="fas fa-paper-plane mr-1"></i> Xabar</button>
+                             <button class="btn btn-sm btn-outline-secondary mx-1 shadow-sm" title="Profil"><i class="fas fa-user mr-1"></i> Profil</button>
+                        </div> -->
+                    </div>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Qo'shimcha stillar */
+    .hover-shadow:hover {
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important;
+        background-color: #e2e6ea!important;
+    }
+</style>
+{% endblock %}

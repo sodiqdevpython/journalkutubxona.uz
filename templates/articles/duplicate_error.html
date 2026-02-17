@@ -1,0 +1,48 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container py-5 text-center">
+  <div class="card border-danger shadow-lg mx-auto" style="max-width: 600px">
+    <div class="card-header bg-danger text-white">
+      <h3 class="mb-0"><i class="fas fa-ban"></i> Maqola rad etildi!</h3>
+    </div>
+    <div class="card-body p-5">
+      <p class="lead">
+        Siz yuklamoqchi bo'lgan fayl bizning tizimimizda mavjud.
+      </p>
+      <hr />
+      <p>Ushbu maqola allaqachon quyidagi muallif tomonidan yuklangan:</p>
+
+      <div
+        class="d-flex align-items-center justify-content-center bg-light p-3 rounded mb-4"
+      >
+        {% if uploader.avatar %}
+        <img
+          src="{{ uploader.avatar.url }}"
+          class="rounded-circle mr-3"
+          width="60"
+          height="60"
+        />
+        {% else %}
+        <i class="fas fa-user-circle fa-3x mr-3 text-secondary"></i>
+        {% endif %}
+        <div class="text-left">
+          <h5 class="mb-0 font-weight-bold">
+            {{ uploader.get_full_name|default:uploader.username }}
+          </h5>
+          <small class="text-muted"
+            >{{ uploader.institution|default:"Ma'lumot yo'q" }}</small
+          >
+        </div>
+      </div>
+
+      <p class="small text-muted">
+        Plagiat va dublikat ma'lumotlar qat'iyan taqiqlanadi. Agar bu xatolik
+        deb hisoblasangiz, administratorga murojaat qiling.
+      </p>
+
+      <a href="{% url 'index' %}" class="btn btn-secondary mt-3"
+        >Bosh sahifaga qaytish</a
+      >
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body text-center bg-white">
+                    <h1 class="display-4 text-warning font-weight-bold">{{ count_total_pending }}</h1>
+                    <p class="text-muted text-uppercase small font-weight-bold mb-0">Jami Kutilmoqda</p>
+                </div>
+            </div>
+            
+            <div class="list-group shadow-sm">
+                <a href="?status=submitted" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if selected_status == 'submitted' %}active font-weight-bold{% endif %}">
+                    <span><i class="fas fa-clock mr-2"></i> Yangi kelganlar</span>
+                    {% if count_new > 0 %}
+                        <span class="badge badge-primary badge-pill">{{ count_new }}</span>
+                    {% endif %}
+                </a>
+
+                <a href="?status=published" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if selected_status == 'published' %}active font-weight-bold{% endif %}">
+                    <span><i class="fas fa-check-circle mr-2"></i> Tasdiqlangan</span>
+                </a>
+
+                <a href="?status=rejected" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if selected_status == 'rejected' %}active font-weight-bold{% endif %}">
+                    <span><i class="fas fa-times-circle mr-2"></i> Qaytarilgan / Rad etilgan</span>
+                </a>
+                
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm border-0">
+                
+                <div class="card-header bg-white py-3 border-bottom">
+                    <form method="get" class="row align-items-center">
+                        <input type="hidden" name="status" value="{{ selected_status }}">
+                        
+                        <div class="col-md-5 mb-2 mb-md-0">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-light border-right-0"><i class="fas fa-search text-muted"></i></span>
+                                </div>
+                                <input type="text" name="q" class="form-control border-left-0" placeholder="Maqola nomi, Muallif..." value="{{ search_query }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <select name="category" class="form-control custom-select" onchange="this.form.submit()">
+                                <option value="">-- Barcha Kategoriyalar --</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}" {% if selected_category|add:"0" == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3 text-right">
+                            <a href="{% url 'moderation_list' %}" class="btn btn-outline-secondary btn-block">
+                                <i class="fas fa-filter mr-1"></i> Tozalash
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 align-middle">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>Sarlavha</th>
+                                    <th>Muallif</th>
+                                    <th>Sana</th>
+                                    <th>Status</th>
+                                    <th class="text-right" style="width: 180px;">Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for article in articles %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    
+                                    <td>
+                                        {% if article.slug %}
+                                            <a href="{% url 'article_detail' article.slug %}" class="font-weight-bold text-dark text-decoration-none" target="_blank">
+                                                {{ article.title|truncatechars:45 }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-danger font-weight-bold" title="Slug xatosi">
+                                                <i class="fas fa-exclamation-triangle"></i> {{ article.title|truncatechars:45 }}
+                                            </span>
+                                        {% endif %}
+                                        
+                                        {% if article.is_resubmission and article.status == 'submitted' %}
+                                            <div class="mt-1">
+                                                <span class="badge badge-info font-weight-normal">
+                                                    <i class="fas fa-sync-alt"></i> Qayta tekshirish
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="small text-muted mt-1">
+                                            <i class="fas fa-folder-open text-secondary mr-1"></i> {{ article.category.name }}
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if article.submitter.avatar %}
+                                                <img src="{{ article.submitter.avatar.url }}" class="rounded-circle mr-2 shadow-sm" width="35" height="35" style="object-fit:cover;">
+                                            {% else %}
+                                                <div class="rounded-circle bg-secondary text-white mr-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; font-size: 14px;">
+                                                    {{ article.submitter.username|slice:":1"|upper }}
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <div class="font-weight-bold small">{{ article.submitter.get_full_name|default:article.submitter.username }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="small text-dark font-weight-bold">{{ article.updated_at|date:"d.m.Y" }}</span>
+                                        <br>
+                                        <span class="small text-muted">{{ article.updated_at|date:"H:i" }}</span>
+                                    </td>
+
+                                    <td>
+                                        {% if article.status == 'submitted' %}
+                                            <span class="badge badge-warning px-2 py-1">Kutilmoqda</span>
+                                        {% elif article.status == 'published' %}
+                                            <span class="badge badge-success px-2 py-1">Tasdiqlangan</span>
+                                        {% elif article.status == 'rejected' %}
+                                            <span class="badge badge-danger px-2 py-1">Rad etilgan</span>
+                                        {% elif article.status == 'changes_requested' %}
+                                            <span class="badge badge-danger px-2 py-1" style="background-color: #fd7e14;">Tahrir talab etiladi</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="text-right">
+                                        {% if article.slug %}
+                                            <div class="btn-group" role="group">
+                                                
+                                                <a href="{% url 'article_history' article.slug %}" class="btn btn-sm btn-outline-secondary" title="Tarix">
+                                                    <i class="fas fa-history"></i>
+                                                </a>
+
+                                                <a href="{% url 'article_detail' article.slug %}" class="btn btn-sm btn-info text-white" target="_blank" title="Ko'rish">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+
+                                                {% if article.status == 'submitted' %}
+                                                    <form action="{% url 'process_article' article.slug %}" method="post" style="display:inline;">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="action" value="approve">
+                                                        <button type="submit" class="btn btn-sm btn-success" title="Tasdiqlash" onclick="return confirm('Tasdiqlaysizmi?')">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    </form>
+
+                                                    <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#rejectModal{{ article.id }}" title="Rad etish / Qaytarish">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+
+                                            {% if article.status == 'submitted' %}
+                                            <div class="modal fade text-left" id="rejectModal{{ article.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                                    <div class="modal-content">
+                                                        <form action="{% url 'process_article' article.slug %}" method="post">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="reject">
+                                                            
+                                                            <div class="modal-header bg-danger text-white">
+                                                                <h5 class="modal-title font-weight-bold">Tahrirga qaytarish</h5>
+                                                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                                    <span aria-hidden="true">&times;</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="alert alert-warning small">
+                                                                    <i class="fas fa-info-circle"></i> Ushbu xabar muallifga yuboriladi va maqola statusi <b>"Tahrir talab etiladi"</b> ga o'zgaradi.
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="font-weight-bold">Sabab / Izoh:</label>
+                                                                    <textarea name="reject_reason" class="form-control" rows="5" required placeholder="Masalan: Fayl ochilmadi, Plagiat bor, Mavzu noto'g'ri..."></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer bg-light">
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Bekor</button>
+                                                                <button type="submit" class="btn btn-danger font-weight-bold">
+                                                                    <i class="fas fa-undo-alt mr-1"></i> Qaytarish
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                        {% else %}
+                                            <small class="text-danger">Slug yo'q</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-check-double fa-3x mb-3 text-success opacity-50"></i>
+                                            <h5>Ro'yxat bo'sh</h5>
+                                            <p class="mb-0">Ushbu bo'limda maqolalar yo'q.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {% if is_paginated %}
+                <div class="card-footer bg-white border-top py-3">
+                    <nav>
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ selected_status }}&category={{ selected_category }}&q={{ search_query }}">Oldingi</a>
+                                </li>
+                            {% endif %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_obj.number }}</span>
+                            </li>
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ selected_status }}&category={{ selected_category }}&q={{ search_query }}">Keyingi</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

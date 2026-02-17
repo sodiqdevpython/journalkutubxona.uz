@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow border-0">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history mr-2"></i> Maqola Tarixi: {{ article.title|truncatechars:50 }}
+                    </h5>
+                    <a href="{% url 'moderation_list' %}" class="btn btn-sm btn-light">Ortga</a>
+                </div>
+                
+                <div class="card-body bg-light">
+                    <div class="alert alert-white border mb-4">
+                        <strong>Hozirgi holati:</strong> 
+                        {% if article.status == 'submitted' %}
+                            <span class="badge badge-warning">Kutilmoqda</span>
+                        {% elif article.status == 'published' %}
+                            <span class="badge badge-success">Tasdiqlangan</span>
+                        {% elif article.status == 'rejected' %}
+                            <span class="badge badge-danger">Rad etilgan</span>
+                        {% endif %}
+                        
+                        {% if article.is_resubmission %}
+                            <span class="badge badge-info ml-2">Qayta yuborilgan</span>
+                        {% endif %}
+                        
+                        <a href="{% url 'article_detail' article.slug %}" class="btn btn-sm btn-outline-primary float-right" target="_blank">Maqolani ko'rish</a>
+                    </div>
+
+                    <div class="timeline">
+                        {% for msg in history %}
+                        <div class="card mb-3 {% if 'RAD ETILDI' in msg.subject %}border-danger{% elif 'TABRIKLAYMIZ' in msg.subject %}border-success{% else %}border-info{% endif %}">
+                            <div class="card-header py-2 d-flex justify-content-between align-items-center 
+                                        {% if 'RAD ETILDI' in msg.subject %}bg-danger text-white{% elif 'TABRIKLAYMIZ' in msg.subject %}bg-success text-white{% else %}bg-info text-white{% endif %}">
+                                <span class="font-weight-bold small">{{ msg.subject }}</span>
+                                <small>{{ msg.created_at|date:"d M Y, H:i" }}</small>
+                            </div>
+                            <div class="card-body py-3">
+                                <p class="mb-0 small" style="white-space: pre-line;">{{ msg.body }}</p>
+                                <hr class="my-2">
+                                <small class="text-muted">
+                                    Kimdan: {% if msg.sender %}{{ msg.sender }}{% else %}Tizim (Admin){% endif %} 
+                                    -> Kimga: {{ msg.recipient }}
+                                </small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted">Hozircha tarix mavjud emas.</div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,690 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+<style>
+  /* 1. KEYWORDS TAG STYLES */
+  .tag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 5px;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    background-color: #fff;
+    min-height: 45px;
+  }
+  .tag-container:focus-within {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  .tag {
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+  }
+  .tag i {
+    margin-left: 8px;
+    cursor: pointer;
+  }
+  .tag-input {
+    border: none;
+    outline: none;
+    flex-grow: 1;
+    padding: 5px;
+    min-width: 150px;
+  }
+
+  /* 2. AUTOCOMPLETE STYLES (QIDIRUV NATIJALARI) */
+  .autocomplete-wrapper {
+    position: relative;
+  }
+  .suggestions-box {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ced4da;
+    border-top: none;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none; /* Boshida ko'rinmaydi */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 4px 4px;
+  }
+  .suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f1f1;
+  }
+  .suggestion-item:last-child {
+    border-bottom: none;
+  }
+  .suggestion-item:hover {
+    background-color: #f8f9fa;
+    color: #007bff;
+  }
+</style>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white py-3">
+          <h4 class="mb-0 font-weight-bold">
+            <i class="fas fa-file-upload mr-2"></i> Maqola yuborish
+          </h4>
+        </div>
+
+        <div class="card-body p-4">
+          <div
+            class="alert alert-warning border-left-warning shadow-sm"
+            role="alert"
+          >
+            <h5 class="alert-heading font-weight-bold">
+              <i class="fas fa-exclamation-triangle"></i> Diqqat!
+            </h5>
+            <p class="mb-0 small">
+              Fayl hajmi <strong>30MB</strong> dan oshmasligi, formati esa
+              <strong>PDF yoki Word</strong> bo'lishi shart.
+            </p>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" id="articleForm">
+            {% csrf_token %}
+
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <label class="font-weight-bold"
+                  >Maqola Sarlavhasi <span class="text-danger">*</span></label
+                >
+                {{ form.title }} {{ form.title.errors }}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="font-weight-bold"
+                  >Kategoriya <span class="text-danger">*</span></label
+                >
+                {{ form.category }}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="font-weight-bold"
+                  >Kalit so'zlar (Keywords)
+                  <span class="text-danger">*</span></label
+                >
+                <div style="display: none">{{ form.keywords }}</div>
+                <div class="tag-container" id="tag-wrapper">
+                  <input
+                    type="text"
+                    class="tag-input"
+                    id="tag-input-field"
+                    placeholder="Yozing va Enter bosing..."
+                  />
+                </div>
+                <small class="text-muted">Enter yoki Vergul bosing</small>
+              </div>
+
+              <div class="col-md-12 mb-3">
+                <label class="font-weight-bold"
+                  >Annotatsiya <span class="text-danger">*</span></label
+                >
+                {{ form.abstract }}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="font-weight-bold"
+                  >Muqova Rasmi <span class="text-danger">*</span></label
+                >
+                {{ form.cover_image }}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="font-weight-bold"
+                  >Maqola Fayli (PDF/Word)
+                  <span class="text-danger">*</span></label
+                >
+                {{ form.original_file }} {{ form.original_file.errors }}
+              </div>
+
+              <div class="col-md-12 mb-3">
+                <label class="font-weight-bold"
+                  >Foydalanilgan Adabiyotlar</label
+                >
+                {{ form.references }}
+              </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <h5 class="font-weight-bold mb-3">Mualliflar</h5>
+            {{ formset.management_form }}
+
+            <div id="author-forms-container">
+              {% for author_form in formset %}
+              <div class="author-row card bg-light mb-3 p-3 border-0">
+                <div class="row align-items-center">
+                  {{ author_form.id }} {{ author_form.order }}
+
+                  <div class="col-md-12 text-right">
+                    {% if formset.can_delete %}
+                    <span
+                      class="text-danger small"
+                      style="cursor: pointer"
+                      onclick="removeAuthor(this)"
+                    >
+                      <i class="fas fa-trash"></i> O'chirish
+                    </span>
+                    <div style="display: none">{{ author_form.DELETE }}</div>
+                    {% endif %}
+                  </div>
+
+                  <div class="col-md-4 user-select-group">
+                    <label class="small font-weight-bold"
+                      >Tizimdagi Muallif</label
+                    >
+
+                    <div class="autocomplete-wrapper">
+                      <input
+                        type="text"
+                        class="form-control user-search-input"
+                        placeholder="Qidirish (Ism, Login)..."
+                        autocomplete="off"
+                        value="{{ author_form.instance.user|default:'' }}"
+                      />
+
+                      <input
+                        type="hidden"
+                        name="{{ author_form.prefix }}-user"
+                        class="user-id-input"
+                        value="{{ author_form.user.value|default:'' }}"
+                      />
+
+                      <div class="suggestions-box"></div>
+                    </div>
+
+                    <div class="mt-1">
+                      <label
+                        class="small text-primary manual-toggle-label"
+                        style="cursor: pointer"
+                      >
+                        {{ author_form.is_manual }} Ro'yxatda yo'qmi?
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="col-md-4 manual-field" style="display: none">
+                    <label class="small font-weight-bold"
+                      >F.I.SH (Qo'lda)</label
+                    >
+                    {{ author_form.full_name }}
+                  </div>
+                  <div class="col-md-4 manual-field" style="display: none">
+                    <label class="small font-weight-bold">Ish joyi</label>
+                    {{ author_form.affiliation }}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm mb-4"
+              id="add-author-btn"
+            >
+              <i class="fas fa-plus"></i> Muallif qo'shish
+            </button>
+
+            <hr />
+
+            <div class="form-group form-check p-3 bg-light rounded border">
+              {{ form.terms_accepted }}
+              <label
+                class="form-check-label font-weight-bold ml-2"
+                for="{{ form.terms_accepted.id_for_label }}"
+              >
+                Men barcha qoidalar bilan tanishdim va roziman.
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              id="submitBtn"
+              class="btn btn-success btn-lg btn-block mt-3"
+              disabled
+            >
+              <i class="fas fa-paper-plane"></i> Maqolani Yuborish
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div
+  class="modal fade"
+  id="termsModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="termsModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title font-weight-bold text-dark" id="termsModalLabel">
+          <i class="fas fa-balance-scale"></i> Foydalanish shartlari
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-dark">
+        <p>
+          Hurmatli muallif, maqolani yuborishdan oldin quyidagi shartlarga
+          rozilik bildirishingiz shart:
+        </p>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item bg-light">
+            <i class="fas fa-check-circle text-success mr-2"></i>
+            Ushbu maqola shaxsan <strong>o'zimga tegishli</strong> va unda
+            birovning mehnatini o'zlashtirish (plagiat) holatlari mavjud emas.
+          </li>
+          <li class="list-group-item bg-light">
+            <i class="fas fa-check-circle text-success mr-2"></i>
+            Maqoladagi ma'lumotlarning
+            <strong>to'g'riligi va ilmiyligi</strong> uchun javobgarman.
+          </li>
+          <li class="list-group-item bg-light">
+            <i class="fas fa-check-circle text-success mr-2"></i>
+            Mualliflarni <strong>to'g'ri ko'rsatganman</strong> boshqa
+            shaxslarni qo'shmaganman.
+          </li>
+          <li class="list-group-item bg-light">
+            <i class="fas fa-check-circle text-success mr-2"></i>
+            Yuqorida keltirilgan bandlarning
+            <strong>hammasi to'g'riligini tasdiqlayman</strong> va javobgarlik
+            o'z zimmamga olaman.
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Bekor qilish
+        </button>
+        <button
+          type="button"
+          class="btn btn-success font-weight-bold"
+          id="agreeBtn"
+        >
+          <i class="fas fa-thumbs-up mr-2"></i> Tanishdim va Roziman
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="termsModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="termsModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title font-weight-bold text-dark" id="termsModalLabel">
+          <i class="fas fa-balance-scale"></i> Foydalanish shartlari
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-dark">
+        <p>
+          Hurmatli muallif, maqolani yuborishdan oldin quyidagi shartlarga
+          rozilik bildirishingiz shart:
+        </p>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item bg-light">
+            <i class="fas fa-check-circle text-success mr-2"></i>
+            Ushbu maqola shaxsan <strong>o'zimga tegishli</strong> va unda
+            birovning mehnatini o'zlashtirish (plagiat) holatlari mavjud emas.
+          </li>
+          <li class="list-group-item bg-light">
+            <i class="fas fa-check-circle text-success mr-2"></i>
+            Maqoladagi ma'lumotlarning
+            <strong>to'g'riligi va ilmiyligi</strong> uchun javobgarman.
+          </li>
+          <li class="list-group-item bg-light">
+            <i class="fas fa-check-circle text-success mr-2"></i>
+            Agar tizimda ushbu faylning <strong>dublikati aniqlansa</strong>,
+            maqolam rad etilishiga roziman.
+          </li>
+          <li class="list-group-item bg-light">
+            <i class="fas fa-check-circle text-success mr-2"></i>
+            Taqdim etilgan fayl (PDF/DOCX) viruslardan xoli va ochish uchun
+            xavfsiz.
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Bekor qilish
+        </button>
+        <button
+          type="button"
+          class="btn btn-success font-weight-bold"
+          id="agreeBtn"
+        >
+          <i class="fas fa-thumbs-up mr-2"></i> Tanishdim va Roziman
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/template" id="empty-form-template">
+  <div class="author-row card bg-light mb-3 p-3 border-0">
+      <div class="row align-items-center">
+          <input type="hidden" name="authors-__prefix__-order" id="id_authors-__prefix__-order">
+          <input type="hidden" name="authors-__prefix__-id" id="id_authors-__prefix__-id">
+
+          <div class="col-md-12 text-right">
+              <span class="text-danger small" style="cursor: pointer;" onclick="removeAuthor(this)">
+                  <i class="fas fa-trash"></i> O'chirish
+              </span>
+              <input type="checkbox" name="authors-__prefix__-DELETE" id="id_authors-__prefix__-DELETE" style="display:none">
+          </div>
+
+          <div class="col-md-4 user-select-group">
+              <label class="small font-weight-bold">Tizimdagi Muallif</label>
+
+              <div class="autocomplete-wrapper">
+                  <input type="text" class="form-control user-search-input" placeholder="Qidirish (Ism, Login)..." autocomplete="off">
+                  <input type="hidden" name="authors-__prefix__-user" class="user-id-input" id="id_authors-__prefix__-user">
+                  <div class="suggestions-box"></div>
+              </div>
+
+              <div class="mt-1">
+                  <label class="small text-primary manual-toggle-label" style="cursor:pointer">
+                      <input type="checkbox" name="authors-__prefix__-is_manual" class="manual-toggle" id="id_authors-__prefix__-is_manual">
+                      Ro'yxatda yo'qmi?
+                  </label>
+              </div>
+          </div>
+
+          <div class="col-md-4 manual-field" style="display: none;">
+              <label class="small font-weight-bold">F.I.SH (Qo'lda)</label>
+              <input type="text" name="authors-__prefix__-full_name" class="form-control manual-input" placeholder="F.I.SH">
+          </div>
+          <div class="col-md-4 manual-field" style="display: none;">
+              <label class="small font-weight-bold">Ish joyi</label>
+              <input type="text" name="authors-__prefix__-affiliation" class="form-control manual-input" placeholder="Ish joyi">
+          </div>
+      </div>
+  </div>
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // --- YORDAMCHI: TARTIB RAQAMINI YANGILASH ---
+    function updateOrders() {
+      const rows = document.querySelectorAll('.author-row')
+      rows.forEach((row, index) => {
+        const orderInput = row.querySelector('input[name$="-order"]')
+        if (orderInput) {
+          orderInput.value = index + 1
+        }
+      })
+    }
+
+    // --- 1. AUTOCOMPLETE (QIDIRUV) ---
+    function debounce(func, wait) {
+      let timeout
+      return function (...args) {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => func.apply(this, args), wait)
+      }
+    }
+
+    function setupAutocomplete(row) {
+      const searchInput = row.querySelector('.user-search-input')
+      const hiddenIdInput = row.querySelector('.user-id-input')
+      const suggestionsBox = row.querySelector('.suggestions-box')
+
+      if (!searchInput) return
+
+      searchInput.addEventListener(
+        'input',
+        debounce(function () {
+          const query = this.value.trim()
+          if (query.length < 1) {
+            suggestionsBox.style.display = 'none'
+            return
+          }
+
+          fetch(`/users/search/?q=${encodeURIComponent(query)}`)
+            .then((response) => response.json())
+            .then((data) => {
+              suggestionsBox.innerHTML = ''
+              if (data.results.length > 0) {
+                suggestionsBox.style.display = 'block'
+                data.results.forEach((user) => {
+                  const item = document.createElement('div')
+                  item.className = 'suggestion-item'
+                  item.textContent = user.text
+                  item.onclick = function () {
+                    searchInput.value = user.text
+                    hiddenIdInput.value = user.id
+                    suggestionsBox.style.display = 'none'
+                  }
+                  suggestionsBox.appendChild(item)
+                })
+              } else {
+                suggestionsBox.style.display = 'none'
+              }
+            })
+            .catch((err) => console.error(err))
+        }, 300),
+      )
+
+      // Tashqariga bosganda yopish
+      document.addEventListener('click', function (e) {
+        if (
+          !searchInput.contains(e.target) &&
+          !suggestionsBox.contains(e.target)
+        ) {
+          suggestionsBox.style.display = 'none'
+        }
+      })
+    }
+    // Mavjudlariga ulash
+    document
+      .querySelectorAll('.author-row')
+      .forEach((row) => setupAutocomplete(row))
+
+    // --- 2. YANGI MUALLIF QO'SHISH ---
+    const authorContainer = document.getElementById('author-forms-container')
+    const addAuthorBtn = document.getElementById('add-author-btn')
+    const totalForms = document.getElementById('id_authors-TOTAL_FORMS')
+    const emptyTemplateEl = document.getElementById('empty-form-template')
+
+    if (addAuthorBtn && emptyTemplateEl) {
+      const emptyFormTemplate = emptyTemplateEl.innerHTML
+      addAuthorBtn.addEventListener('click', function () {
+        const formCount = parseInt(totalForms.value)
+        const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formCount)
+
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = newFormHtml
+        const newFormRow = tempDiv.firstElementChild
+
+        authorContainer.appendChild(newFormRow)
+        totalForms.value = formCount + 1
+
+        attachToggleListener(newFormRow)
+        setupAutocomplete(newFormRow)
+        updateOrders() // Tartibni yangilash
+      })
+    }
+
+    // --- 3. TOGGLE (MANUAL VS QIDIRUV) ---
+    function attachToggleListener(row) {
+      const checkbox = row.querySelector('.manual-toggle')
+      const userSelectDiv = row.querySelector('.user-select-group')
+      const manualFields = row.querySelectorAll('.manual-field')
+      const hiddenIdInput = row.querySelector('.user-id-input')
+      const searchInput = row.querySelector('.user-search-input')
+
+      if (checkbox) {
+        checkbox.addEventListener('change', function () {
+          if (this.checked) {
+            userSelectDiv.style.display = 'none'
+            manualFields.forEach((f) => (f.style.display = 'block'))
+            if (hiddenIdInput) hiddenIdInput.value = ''
+            if (searchInput) searchInput.value = ''
+          } else {
+            userSelectDiv.style.display = 'block'
+            manualFields.forEach((f) => (f.style.display = 'none'))
+            row.querySelectorAll('.manual-input').forEach((i) => (i.value = ''))
+          }
+        })
+      }
+    }
+    document
+      .querySelectorAll('.author-row')
+      .forEach((row) => attachToggleListener(row))
+
+    // --- 4. O'CHIRISH FUNKSIYASI ---
+    window.removeAuthor = function (btn) {
+      const row = btn.closest('.author-row')
+      const deleteInput = row.querySelector('input[name$="-DELETE"]')
+      if (deleteInput) {
+        deleteInput.checked = true
+        row.style.display = 'none'
+      } else {
+        row.remove()
+      }
+      updateOrders() // Tartibni yangilash
+    }
+
+    // --- 5. KEYWORDS TAG MANAGER ---
+    const tagWrapper = document.getElementById('tag-wrapper')
+    const tagInput = document.getElementById('tag-input-field')
+    const hiddenInput =
+      document.getElementById('id_keywords') ||
+      document.querySelector('input[name="keywords"]')
+    let tags = []
+
+    // Boshlang'ich yuklash
+    if (hiddenInput && hiddenInput.value) {
+      hiddenInput.value.split(',').forEach((tag) => {
+        if (tag.trim()) {
+          tags.push(tag.trim())
+        }
+      })
+      renderTags() // Chizish
+    }
+
+    if (tagInput) {
+      tagInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault()
+          const val = tagInput.value.trim().replace(',', '')
+          if (val && !tags.includes(val)) {
+            tags.push(val)
+            updateHiddenInput()
+            renderTags()
+            tagInput.value = ''
+          }
+        }
+        if (e.key === 'Backspace' && tagInput.value === '' && tags.length > 0) {
+          tags.pop()
+          updateHiddenInput()
+          renderTags()
+        }
+      })
+    }
+
+    function renderTags() {
+      const existingTags = tagWrapper.querySelectorAll('.tag')
+      existingTags.forEach((t) => t.remove())
+
+      tags.forEach((text) => {
+        const tag = document.createElement('div')
+        tag.className = 'tag'
+        tag.textContent = text + ' '
+
+        const icon = document.createElement('i')
+        icon.className = 'fas fa-times ml-1'
+        icon.style.cursor = 'pointer'
+
+        // X bosilganda o'chirish
+        icon.addEventListener('click', function () {
+          tags = tags.filter((t) => t !== text)
+          updateHiddenInput()
+          renderTags()
+        })
+
+        tag.appendChild(icon)
+        tagWrapper.insertBefore(tag, tagInput)
+      })
+    }
+
+    function updateHiddenInput() {
+      if (hiddenInput) hiddenInput.value = tags.join(',')
+    }
+
+    // --- 6. TERMS CHECKBOX & MODAL ---
+    const termsCheckbox =
+      document.getElementById('id_terms_accepted') ||
+      document.querySelector('input[name="terms_accepted"]')
+    const submitBtn = document.getElementById('submitBtn')
+    const agreeBtn = document.getElementById('agreeBtn') // Modaldagi "Roziman" tugmasi
+
+    if (termsCheckbox) {
+      // Checkbox bosilganda Modal ochiladi
+      termsCheckbox.addEventListener('click', function (e) {
+        if (this.checked) {
+          e.preventDefault() // Checkboxni darhol belgilamaymiz
+          this.checked = false
+          $('#termsModal').modal('show') // Modalni ochamiz
+        } else {
+          // Agar checkboxdan belgini olib tashlasa
+          submitBtn.disabled = true
+        }
+      })
+
+      // Modaldagi "Roziman" bosilganda
+      if (agreeBtn) {
+        agreeBtn.addEventListener('click', function () {
+          termsCheckbox.checked = true // Checkboxni dasturiy belgilaymiz
+          submitBtn.disabled = false // Buttonni yoqamiz
+          $('#termsModal').modal('hide') // Modalni yopamiz
+        })
+      }
+    }
+
+    // Sahifa yuklanganda tartibni to'g'rilash
+    updateOrders()
+  })
+</script>
+
+{% endblock %}
