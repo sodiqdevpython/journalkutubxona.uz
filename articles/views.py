@@ -55,7 +55,7 @@ class IndexView(View):
         # 4. Qolgan qismlar (O'zgarishsiz)
         breaking_articles = articles.order_by('-updated_at')[:5]
         featured_articles = articles.order_by('-views')[:10]
-        latest_articles = articles.order_by('-created_at')[:20]
+        latest_articles = articles.order_by('-created_at')[:4]
         popular_articles = articles.order_by('-views')[:5]
         special_articles = articles.filter(cover_image__isnull=False).order_by('-created_at')[:1]
         categories = Category.objects.all()
