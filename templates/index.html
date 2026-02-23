@@ -302,22 +302,6 @@
                         </div>
                         {% endfor %}
                     </div>
-                    
-                    {% for article in special_articles %}
-                    <div class="col-lg-12">
-                        <div class="row news-lg mx-0 mb-3">
-                            <div class="col-md-6 h-100 px-0">
-                                <div class="h-100 img-zoom-container">
-                                    {% if article.cover_image %}
-                                        <img class="img-fluid w-100 h-100" src="{{ article.cover_image.url }}">
-                                    {% else %}
-                                        <img class="img-fluid w-100 h-100" src="{% static 'img/default-lg.jpg' %}">
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
 
                 </div>
             </div>
