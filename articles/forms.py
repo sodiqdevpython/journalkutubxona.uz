@@ -13,7 +13,7 @@ class ArticleForm(forms.ModelForm):
 
     class Meta:
         model = Article
-        fields = ['title', 'category', 'abstract', 'keywords', 'references', 'cover_image', 'original_file']
+        fields = ['title', 'category', 'abstract', 'keywords', 'references', 'cover_image', 'original_file', 'number', 'year']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Maqola mavzusi'}),
             'category': forms.Select(attrs={'class': 'form-control form-select'}),
@@ -22,6 +22,8 @@ class ArticleForm(forms.ModelForm):
             'references': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
             'cover_image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'original_file': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.doc,.docx'}),
+            'number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Maqola raqami'}),
+            'year': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nashr yili'}),
         }
 
     def clean_original_file(self):

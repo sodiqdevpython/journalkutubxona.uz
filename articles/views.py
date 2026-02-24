@@ -518,7 +518,6 @@ class ArticleDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
-
 class ArticleListView(ListView):
     model = Article
     template_name = 'articles/article_list.html'
@@ -534,7 +533,12 @@ class ArticleListView(ListView):
         if category_id:
             queryset = queryset.filter(category_id=category_id)
 
-        # 3. QIDIRUV: Sarlavha yoki Annotatsiya bo'yicha (?q=matn)
+        # 3. FILTER: Yil bo'yicha (?year=2024) - YANGI QO'SHILDI
+        year = self.request.GET.get('year')
+        if year:
+            queryset = queryset.filter(year=year)
+
+        # 4. QIDIRUV: Sarlavha yoki Annotatsiya bo'yicha (?q=matn)
         query = self.request.GET.get('q')
         if query:
             queryset = queryset.filter(
@@ -561,6 +565,7 @@ class ArticleListView(ListView):
         # Filtrlarni paginationda saqlab qolish uchun
         context['search_query'] = self.request.GET.get('q', '')
         context['selected_category'] = self.request.GET.get('category', '')
+        context['selected_year'] = self.request.GET.get('year', '')  # YANGI QO'SHILDI
         
         return context
 

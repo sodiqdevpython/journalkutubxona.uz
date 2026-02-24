@@ -136,6 +136,30 @@
               </div>
 
               <div class="col-md-6 mb-3">
+                <label
+                  class="font-weight-bold"
+                  for="{{ form.year.id_for_label }}"
+                >
+                  Nashr yili
+                </label>
+                {{ form.year }} {% if form.year.errors %}
+                <div class="text-danger small">{{ form.year.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label
+                  class="font-weight-bold"
+                  for="{{ form.number.id_for_label }}"
+                >
+                  Maqola raqami
+                </label>
+                {{ form.number }} {% if form.number.errors %}
+                <div class="text-danger small">{{ form.number.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="col-md-6 mb-3">
                 <label class="font-weight-bold"
                   >Muqova Rasmi <span class="text-danger">*</span></label
                 >

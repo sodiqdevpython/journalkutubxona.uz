@@ -51,6 +51,9 @@ class Article(BaseModel):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     views = models.PositiveIntegerField(default=0)
 
+    number = models.CharField(max_length=3, null=True, blank=True, verbose_name="Maqola raqami")
+    year = models.CharField(max_length=4, null=True, blank=True, verbose_name="Nashr yili")
+
     def save(self, *args, **kwargs):
         # Agar slug bo'sh bo'lsa, sarlavhadan yasaymiz
         if not self.slug:
