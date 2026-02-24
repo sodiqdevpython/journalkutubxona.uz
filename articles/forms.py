@@ -22,7 +22,7 @@ class ArticleForm(forms.ModelForm):
             'references': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
             'cover_image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'original_file': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.doc,.docx'}),
-            'number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Maqola raqami'}),
+            'number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Chiqarilgan soni'}),
             'year': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nashr yili'}),
         }
 
