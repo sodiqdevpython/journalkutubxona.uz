@@ -138,6 +138,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://journalkutubxona.uz",
     "https://www.journalkutubxona.uz",
     "https://*.journalkutubxona.uz",
+    "https://libedu.uz",
+    "https://journal.libedu.uz"
 ]
 
 
