@@ -26,13 +26,13 @@ class MessageForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Xabar yuborishda o'zidan boshqa hamma userlarni chiqarish (ixtiyoriy logika)
-        # Agar kerak bo'lsa, querysetni shu yerda filtrlash mumkin
+        
+        
 
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ['text'] # Modelda 'message' yoki 'body' bo'lsa shunga o'zgartiring
+        fields = ['text'] 
         widgets = {
             'text': forms.Textarea(attrs={
                 'class': 'form-control',

@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from .models import Article, ArticleAuthor
 
 class ArticleForm(forms.ModelForm):
-    # Modelda bo'lmagan, lekin forma uchun kerakli maydon (Rozilik)
     terms_accepted = forms.BooleanField(
         required=True,
         label="Men barcha qoidalarga roziman",
@@ -29,19 +28,16 @@ class ArticleForm(forms.ModelForm):
     def clean_original_file(self):
         file = self.cleaned_data.get('original_file')
         if file:
-            # 1. Hajmni tekshirish (30MB)
             limit_mb = 30
             if file.size > limit_mb * 1024 * 1024:
                 raise ValidationError(f"Fayl hajmi {limit_mb}MB dan oshmasligi kerak!")
             
-            # 2. Formatni tekshirish (Qo'shimcha himoya)
             ext = file.name.split('.')[-1].lower()
             if ext not in ['pdf', 'doc', 'docx']:
                 raise ValidationError("Faqat PDF, DOC yoki DOCX fayllar qabul qilinadi.")
         return file
 
 class ArticleAuthorForm(forms.ModelForm):
-    # Bu checkbox html da JS orqali inputlarni almashtirish uchun ishlatiladi
     is_manual = forms.BooleanField(required=False, label="Ro'yxatda yo'qmi?", widget=forms.CheckboxInput(attrs={'class': 'manual-toggle'}))
 
     class Meta:
@@ -51,7 +47,7 @@ class ArticleAuthorForm(forms.ModelForm):
             'user': forms.Select(attrs={'class': 'form-control user-select'}),
             'full_name': forms.TextInput(attrs={'class': 'form-control manual-input', 'placeholder': 'F.I.SH'}),
             'affiliation': forms.TextInput(attrs={'class': 'form-control manual-input', 'placeholder': 'Ish joyi'}),
-            'order': forms.HiddenInput(), # Tartib raqami avtomatik qo'yiladi
+            'order': forms.HiddenInput(), 
         }
 
 ArticleAuthorFormSet = inlineformset_factory(

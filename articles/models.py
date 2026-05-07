@@ -31,12 +31,10 @@ class Article(BaseModel):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='articles')
     submitter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='submitted_articles')
     
-    # Asosiy ma'lumotlar
     cover_image = models.ImageField(upload_to='covers/', blank=True, null=True, verbose_name="Muqova rasmi")
     abstract = models.TextField(verbose_name="Annotatsiya")
     is_resubmission = models.BooleanField(default=False)
     
-    # ASOSIY FAYL (Faqat PDF yoki Word)
     original_file = models.FileField(
         upload_to='articles/%Y/%m/',
         validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx'])],
@@ -44,7 +42,6 @@ class Article(BaseModel):
     )
     file_hash = models.CharField(max_length=64, blank=True, unique=True, verbose_name="Fayl Xeshi")
     
-    # Metadata
     keywords = models.CharField(max_length=255, help_text="Vergul bilan ajratilgan")
     references = models.TextField(blank=True, null=True, verbose_name="Adabiyotlar ro'yxati")
 
@@ -55,10 +52,8 @@ class Article(BaseModel):
     year = models.CharField(max_length=4, null=True, blank=True, verbose_name="Nashr yili")
 
     def save(self, *args, **kwargs):
-        # Agar slug bo'sh bo'lsa, sarlavhadan yasaymiz
         if not self.slug:
             base_slug = slugify(self.title)
-            # Dublikat bo'lmasligi uchun tekshiramiz
             unique_slug = base_slug
             num = 1
             while Article.objects.filter(slug=unique_slug).exists():
@@ -76,7 +71,6 @@ class Article(BaseModel):
         name, extension = os.path.splitext(self.original_file.name)
         return extension.lower()
 
-# ArticleAuthor modeli o'zgarishsiz
 class ArticleAuthor(BaseModel):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='authors')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)

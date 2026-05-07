@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-# --- RO'YXATDAN O'TISH FORMASI ---
 class UserRegistrationForm(UserCreationForm):
     class Meta:
         model = CustomUser
@@ -14,12 +13,11 @@ class UserRegistrationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # 1. Maydon nomlarini O'zbekcha qilish
         self.fields['username'].label = "Foydalanuvchi nomi (Login)"
         self.fields['username'].help_text = "Lotin harflari, raqamlar va _ belgisidan foydalaning."
         
         self.fields['first_name'].label = "Ismingiz"
-        self.fields['first_name'].required = True # Ism majburiy bo'lsin
+        self.fields['first_name'].required = True 
         
         self.fields['last_name'].label = "Familiyangiz"
         self.fields['last_name'].required = True
@@ -30,17 +28,13 @@ class UserRegistrationForm(UserCreationForm):
         self.fields['phone_number'].label = "Telefon raqamingiz"
         self.fields['institution'].label = "Ish yoki o'qish joyingiz"
 
-        # Parol maydonlari (UserCreationForm dan keladi)
-        # Eslatma: 'password' maydonlari modelda yo'q, ular forma ichida generatsiya qilinadi
-        if 'key1' in self.fields: # Ba'zi versiyalarda farq qilishi mumkin, lekin odatda pastdagi ishlaydi
+        if 'key1' in self.fields: 
              pass
 
-        # 2. Inputlarga Bootstrap class va Placeholder qo'shish
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
             
 
-# --- KIRISH (LOGIN) FORMASI ---
 class UserLoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

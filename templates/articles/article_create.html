@@ -1,6 +1,5 @@
 {% extends 'base.html' %} {% load static %} {% block content %}
 <style>
-  /* 1. KEYWORDS TAG STYLES */
   .tag-container {
     display: flex;
     flex-wrap: wrap;
@@ -36,7 +35,6 @@
     min-width: 150px;
   }
 
-  /* 2. AUTOCOMPLETE STYLES (QIDIRUV NATIJALARI) */
   .autocomplete-wrapper {
     position: relative;
   }
@@ -696,17 +694,15 @@
         }
       })
 
-      // Modaldagi "Roziman" bosilganda
       if (agreeBtn) {
         agreeBtn.addEventListener('click', function () {
-          termsCheckbox.checked = true // Checkboxni dasturiy belgilaymiz
-          submitBtn.disabled = false // Buttonni yoqamiz
-          $('#termsModal').modal('hide') // Modalni yopamiz
+          termsCheckbox.checked = true
+          submitBtn.disabled = false
+          $('#termsModal').modal('hide')
         })
       }
     }
 
-    // Sahifa yuklanganda tartibni to'g'rilash
     updateOrders()
   })
 </script>
