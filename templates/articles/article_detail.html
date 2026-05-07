@@ -128,22 +128,14 @@
                         {% endif %}
                     </div>
 
-                    {% if article.keywords %}
+                    {% if keywords_list %}
                     <div class="mb-4">
                         <h6 class="font-weight-bold text-uppercase small mb-2">Kalit so'zlar:</h6>
                         <div class="d-flex flex-wrap">
-                            {% for tag in article.keywords.split %}
-                                {% if keywords_list %}
-                                    <div class="mb-4">
-                                        <div class="d-flex flex-wrap">
-                                            {% for tag in keywords_list %}
-                                                <a href="{% url 'moderation_list' %}?q={{ tag }}" class="badge badge-light border text-primary m-1 p-2 px-3 text-decoration-none hover-shadow">
-                                                    #{{ tag }}
-                                                </a>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                {% endif %}
+                            {% for tag in keywords_list %}
+                                <a href="{% url 'moderation_list' %}?q={{ tag }}" class="badge badge-light border text-primary m-1 p-2 px-3 text-decoration-none hover-shadow">
+                                    #{{ tag }}
+                                </a>
                             {% endfor %}
                         </div>
                     </div>
